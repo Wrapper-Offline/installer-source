@@ -56,7 +56,7 @@ if !GIT_DETECTED!==n (
 		echo ERROR
 		echo:
 		echo Wrapper: Offline needs to install Git.
-		echo To do this, the installer must be started with Admin righ0ts.
+		echo To do this, the installer must be started with Admin rights.
 		echo:
 		echo Close this window and re-open the installer as an Admin.
 		echo ^(right-click installer.bat and click "Run as Administrator"^)
@@ -70,7 +70,7 @@ if !GIT_DETECTED!==n (
 if !GIT_DETECTED!==n (
 	:: Install Git
 	if not exist "git_installer.exe" (
-		powershell -Command "Invoke-WebRequest https://github.com/git-for-windows/git/releases/download/v2.35.1.windows.2/Git-2.35.1.2-32-bit.exe -OutFile package.zip"
+		powershell -Command "Invoke-WebRequest https://github.com/git-for-windows/git/releases/download/v2.35.1.windows.2/Git-2.35.1.2-32-bit.exe -OutFile git_installer.exe"
 	)
 	echo Proper Git installation doesn't seem possible to do automatically.
 	echo You can just keep clicking next until it finishes,
@@ -81,6 +81,7 @@ if !GIT_DETECTED!==n (
 	:git_installed
 	echo Git has been installed.
 	set GIT_DETECTED=y
+	del /Q git_installer.exe
 )
 
 :: Alert user to restart the installer without running as Admin
