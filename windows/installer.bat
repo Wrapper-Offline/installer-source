@@ -70,11 +70,7 @@ if !GIT_DETECTED!==n (
 if !GIT_DETECTED!==n (
 	:: Install Git
 	if not exist "git_installer.exe" (
-		echo We have a problem. The Git installer doesn't exist.
-		echo A normal copy of theinstaller should come with one.
-		echo You should be able to find a copy on this website:
-		echo https://git-scm.com/downloads
-		pause & exit
+		powershell -Command "Invoke-WebRequest https://github.com/git-for-windows/git/releases/download/v2.35.1.windows.2/Git-2.35.1.2-32-bit.exe -OutFile package.zip"
 	)
 	echo Proper Git installation doesn't seem possible to do automatically.
 	echo You can just keep clicking next until it finishes,
