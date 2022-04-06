@@ -90,7 +90,7 @@ then
 	git clone --single-branch --branch beta https://github.com/Wrapper-Offline/Wrapper-Offline.git
 	clear
 	echo 'Wrapper: Offline has been installed! Feel free to move it wherever you want.'
-	xdg-open ~/Wrapper-Offline
+	xdg-open ./Wrapper-Offline
 elif [ $Choice = 'shutup' ] 
 then
 	echo 'Nobody care and who aks'
