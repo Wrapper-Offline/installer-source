@@ -4,7 +4,6 @@
 # Author: sparrkz#0001
 # License: MIT
 
-sudo chmod +x ./installer.sh
 grep '^ID' /etc/os-release
 
 ##########################
@@ -83,7 +82,7 @@ then
 	git clone https://github.com/Wrapper-Offline/Wrapper-Offline.git
 	clear
 	echo 'Wrapper: Offline has been installed! Feel free to move it wherever you want.'
-	xdg-open ~/Wrapper-Offline
+	xdg-open ./Wrapper-Offline
 elif [ $Choice = '2' ] 
 then
 	clear
