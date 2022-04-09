@@ -13,11 +13,6 @@ title Wrapper: Offline Installer [Initializing...]
 :: Lets variables work or something idk im not a nerd
 SETLOCAL ENABLEDELAYEDEXPANSION
 
-:: Make sure we're starting in the correct folder
-pushd "%~dp0"
-:: Check *again* because it seems like sometimes it doesn't go into dp0 the first time???
-pushd "%~dp0"
-
 ::check for admin 
 fsutil dirty query !systemdrive! >NUL 2>&1
 if /i not !ERRORLEVEL!==0 (
@@ -27,6 +22,11 @@ if /i not !ERRORLEVEL!==0 (
 	pause
 	exit
 )
+
+:: Make sure we're starting in the correct folder
+pushd "%~dp0"
+:: Check *again* because it seems like sometimes it doesn't go into dp0 the first time???
+pushd "%~dp0"
 
 ::::::::::::::::::::::
 :: Dependency Check ::
@@ -248,22 +248,20 @@ echo Time to choose. && goto wrapperidle
 
 :downloadmain
 cls
-pushd "%~dp0..\"
 echo Cloning repository from GitHub...
 git clone https://github.com/Wrapper-Offline/Wrapper-Offline.git
 goto npminstall
 
 :downloadbeta
 cls
-pushd "%~dp0..\"
 echo Cloning repository from GitHub...
 git clone --single-branch --branch beta https://github.com/Wrapper-Offline/Wrapper-Offline.git
 goto npminstall
 
 :npminstall
 cls
-echo Installing Node packages...
 pushd Wrapper-Offline\wrapper
+echo Installing Node packages...
 call npm install
 popd
 
@@ -275,10 +273,11 @@ call npm install http-server -g && goto certinstall
 
 :certinstall
 cls
-pushd Wrapper-Offline
+pushd "%~dp0"
+pushd Wrapper-Offline\server
 echo Installing HTTPS certificate...
 echo:
-if not exist "server\the.crt" (
+if not exist "the.crt" (
 	echo ...except it doesn't exist for some reason.
 	echo Wrapper: Offline requires this to run.
 	echo You should get a "the.crt" file from someone else, or redownload Wrapper: Offline.
@@ -286,15 +285,13 @@ if not exist "server\the.crt" (
 	pause
 	exit
 )
-pushd server
-certutil -addstore -f -enterprise -user root the.crt >nul
-popd
-popd
+call certutil -addstore -f -enterprise -user root the.crt >nul
+pushd "%~dp0..\"
 
 :finish
 cls
 echo Wrapper: Offline has been installed^^! Feel free to move it wherever you want.
-start "" "%~dp0..\Wrapper-Offline"
+start "" "%~dp0"
 pause & exit
 
 :exit
