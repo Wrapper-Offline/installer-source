@@ -79,7 +79,7 @@ elif [ $Choice = '1' ]
 then
 	clear
 	echo 'Cloning repository from GitHub...'
-	git clone --single-branch --branch linux ffhttps://github.com/Wrapper-Offline/Wrapper-Offline.git
+	git clone --single-branch --branch linux https://github.com/Wrapper-Offline/Wrapper-Offline.git
 	clear
 	echo 'Wrapper: Offline has been installed! Feel free to move it wherever you want.'
 	xdg-open ./Wrapper-Offline
