@@ -13,14 +13,9 @@ title Wrapper: Offline Installer [Initializing...]
 :: Lets variables work or something idk im not a nerd
 SETLOCAL ENABLEDELAYEDEXPANSION
 
-::check for admin 
-fsutil dirty query !systemdrive! >NUL 2>&1
-if /i not !ERRORLEVEL!==0 (
-	echo You need to run this file with admin privelages.
-	echo Right click on this file, and click "Run as Administrator".
-	echo If you don't have this option, your current user account does not have admin privileges.
-	pause
-	exit
+::check for admin
+set "params=%*"
+cd /d "%~dp0" && ( if exist "%temp%\getadmin.vbs" del "%temp%\getadmin.vbs" ) && fsutil dirty query %systemdrive% 1>nul 2>nul || (  echo Set UAC = CreateObject^("Shell.Application"^) : UAC.ShellExecute "cmd.exe", "/k cd ""%~sdp0"" && %~s0 %params%", "", "runas", 1 >> "%temp%\getadmin.vbs" && "%temp%\getadmin.vbs" && exit /B )
 )
 
 :: Make sure we're starting in the correct folder
@@ -40,6 +35,7 @@ echo:
 set DEPENDENCIES_NEEDED=n
 set GIT_DETECTED=n
 set NODE_DETECTED=n
+set HTTPSERVER_DETECTED=n
 set FLASH_DETECTED=n
 
 :: Git check
@@ -53,7 +49,6 @@ IF "!goutput!" EQU "" (
 	echo:
 	set GIT_DETECTED=y
 )
-popd
 
 :: Node.JS check
 echo Checking for Node.JS installation...
@@ -66,7 +61,6 @@ IF "!noutput!" EQU "" (
 	echo:
 	set NODE_DETECTED=y
 )
-popd
 
 :: Flash check
 echo Checking for Flash installation...
@@ -81,9 +75,9 @@ if !FLASH_DETECTED!==n (
 	echo:
 )
 
-:::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::
 :: Dependency Install ::
-:::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::
 
 if !DEPENDENCIES_NEEDED!==y (
 	title Wrapper: Offline Installer [Installing Dependencies...]
@@ -102,9 +96,7 @@ if !DEPENDENCIES_NEEDED!==y (
 )
 
 if !GIT_DETECTED!==n (
-	:: Install Git
-	title Wrapper: Offline Installer [Installing Git...]
-	echo:
+	cls
 	echo Installing Git...
 	echo:
 	if not exist "git_installer.exe" (
@@ -123,6 +115,7 @@ if !GIT_DETECTED!==n (
 )
 
 if !NODE_DETECTED!==n (	
+	cls
 	echo Installing Node.js...
 	echo:
 	:: Install Node.js
@@ -154,27 +147,29 @@ if !NODE_DETECTED!==n (
 
 	:installnode64
 	if not exist "node_installer_64.msi" (
-		powershell -Command "Invoke-WebRequest https://nodejs.org/dist/v17.8.0/node-v17.8.0-x64.msi -OutFile node_installer_64.msi"
+		powershell -Command "Invoke-WebRequest https://nodejs.org/dist/v12.18.1/node-v12.18.1-x64.msi -OutFile node_installer_64.msi"
 	)
-	msiexec /i "node_installer_64.msi" !INSTALL_FLAGS!
 	echo Proper Node.js installation doesn't seem possible to do automatically.
 	echo You can just keep clicking next until it finishes, and Wrapper: Offline will continue once it closes.
+	msiexec /i "node_installer_64.msi" !INSTALL_FLAGS!
 	del node_installer_64.msi
 	goto nodejs_installed
 
 	:installnode32
 	if not exist "node_installer_32.msi" (
-		powershell -Command "Invoke-WebRequest https://nodejs.org/dist/v17.8.0/node-v17.8.0-x86.msi -OutFile node_installer_32.msi"
+		powershell -Command "Invoke-WebRequest https://nodejs.org/dist/v12.18.1/node-v12.18.1-x86.msi -OutFile node_installer_32.msi"
 	)
-	msiexec /i "node_installer_32.msi" !INSTALL_FLAGS!
 	echo Proper Node.js installation doesn't seem possible to do automatically.
 	echo You can just keep clicking next until it finishes, and Wrapper: Offline will continue once it closes.
+	msiexec /i "node_installer_32.msi" !INSTALL_FLAGS!
+	
 	del node_installer_32.msi
 	goto nodejs_installed
 
 	:nodejs_installed
 	echo Node.js has been installed.
-	set NODEJS_DETECTED=y
+	set NODE_DETECTED=y
+	set DEPENDENCIES_NEEDED=n
 )
 
 :after_nodejs_install
@@ -194,7 +189,7 @@ if !FLASH_DETECTED!==n (
 
 	:: Summon the Browser Slayer
 	echo Rip and tear, until it is done.
-	for %%i in (firefox,palemoon,iexplore,microsoftedge,chrome,chrome64,opera,brave) do (
+	for %%i in (firefox,palemoon,iexplore,microsoftedge,msedge,chrome,chrome64,opera,brave) do (
 		if !VERBOSEWRAPPER!==y (
 			 taskkill /f /im %%i.exe /t
 			 wmic process where name="%%i.exe" call terminate
@@ -204,6 +199,7 @@ if !FLASH_DETECTED!==n (
 		)
 	)
 	:lurebrowserslayer
+	cls
 	echo:
 	echo Starting Flash installer...
 	if not exist "flash_windows_chromium.msi" (
@@ -213,7 +209,15 @@ if !FLASH_DETECTED!==n (
 
 	echo Flash has been installed.
 	del flash_windows_chromium.msi	
+	set FLASH_DETECTED=y
+	
 	echo:
+)
+
+if !DEPENDENCIES_NEEDED!==y (
+	echo Dependencies installed. 
+	start installer_windows.bat
+	exit
 )
 
 :::::::::::::::::::::::::
@@ -226,10 +230,11 @@ cls
 
 echo:
 echo Wrapper: Offline Installer
-echo A project from VisualPlugin adapted by the Wrapper: Offline team
+echo A project from VisualPlugin adapted by GoTest334 and the Wrapper: Offline team
 echo:
-echo Enter 1 to install from the main branch
-echo Enter 2 to install from the beta branch
+echo Enter 1 to install Wrapper: Offline 1.2.3 (Stable Release)
+echo Enter 2 to install Wrapper: Offline 1.3.0 (Beta Release)
+echo Beta Version is unstable and is not recommended.
 echo Enter 0 to close the installer
 :wrapperidle
 echo:
@@ -248,32 +253,51 @@ echo Time to choose. && goto wrapperidle
 
 :downloadmain
 cls
-echo Cloning repository from GitHub...
-git clone https://github.com/Wrapper-Offline/Wrapper-Offline.git
+if not exist "Wrapper-Offline" (
+	echo Cloning repository from GitHub...
+	git clone https://github.com/Wrapper-Offline/Wrapper-Offline.git
+) else (
+	echo You already have it installed apparently?
+	echo If you're trying to install a different version make sure you remove the old folder.
+	pause
+)
 goto npminstall
 
 :downloadbeta
 cls
-echo Cloning repository from GitHub...
-git clone --single-branch --branch beta https://github.com/Wrapper-Offline/Wrapper-Offline.git
+if not exist "Wrapper-Offline" (
+	echo Cloning repository from GitHub...
+	git clone --single-branch --branch beta https://github.com/Wrapper-Offline/Wrapper-Offline.git
+) else (
+	echo You already have it installed apparently?
+	echo If you're trying to install a different version make sure you remove the old folder.
+	pause
+)
 goto npminstall
 
 :npminstall
 cls
 pushd Wrapper-Offline\wrapper
-echo Installing Node packages...
-call npm install
+if not exist "package-lock.json" (
+	echo Installing Node.JS packages...
+	call npm install
+) else (
+	echo Node.JS packages already installed.
+)
 popd
 
 :httpserverinstall
 cls
-echo Installing HTTP-Server...
-:: get
-call npm install http-server -g && goto certinstall
+npm list -g | findstr "http-server" >nul
+if !errorlevel! == 0 (
+	echo HTTP-Server already installed.
+) else (
+	echo Installing HTTP-Server...
+	call npm install http-server -g
+)
 
 :certinstall
 cls
-pushd "%~dp0"
 pushd Wrapper-Offline\server
 echo Installing HTTPS certificate...
 echo:
@@ -286,13 +310,30 @@ if not exist "the.crt" (
 	exit
 )
 call certutil -addstore -f -enterprise -user root the.crt >nul
-pushd "%~dp0..\"
+popd
 
 :finish
 cls
-echo Wrapper: Offline has been installed^^! Feel free to move it wherever you want.
-start "" "%~dp0"
+echo:
+echo Wrapper: Offline has been installed^^! Would you like to start it now?
+echo:
+echo Enter 1 to open Wrapper: Offline now.
+echo Enter 0 to just open the folder.
+:finalidle
+echo:
+
+set /p CHOICE=Choice:
+if "!choice!"=="0" goto folder
+if "!choice!"=="1" goto start
+echo Time to choose. && goto finalidle
+
+:folder
+start "" "Wrapper-Offline"
 pause & exit
+
+:start
+pushd Wrapper-Offline
+start start_wrapper.bat
 
 :exit
 pause & exit
