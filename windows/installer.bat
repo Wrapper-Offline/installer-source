@@ -279,6 +279,7 @@ if not exist "Wrapper-Offline" (
 	echo You already have it installed apparently?
 	echo If you're trying to install a different version make sure you remove the old folder.
 	pause
+	exit
 )
 goto npminstall
 
